@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,11 @@ class RaceServerApplicationTests {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
+	@BeforeEach
+	public void setup() {
+		this.jdbcTemplate.execute("INSERT INTO participant(rfid, start_number, first_name, last_name) VALUES (100, 1000, 'Joan','Benoit');");
+	}
+
 	@Test
 	void contextLoads() {
 	}
@@ -39,7 +45,7 @@ class RaceServerApplicationTests {
 	//@Sql({ "schema.sql", "data.sql" })
 	@Test
 	public void canCreate() {
-		EventRequest requestBody = new EventRequest(1L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
+		EventRequest requestBody = new EventRequest(100L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
 		ResponseEntity<String> responseEntity = this.restTemplate
 				.postForEntity("http://localhost:" + port + "/race/event", requestBody, String.class);
 		assertEquals(200, responseEntity.getStatusCodeValue());
@@ -49,17 +55,17 @@ class RaceServerApplicationTests {
 		assertEquals(events.size(), 1);
 		assertTrue(events.stream()
 				.filter(event -> event.getReaderId() == 111L)
-				.filter(event -> event.getRfid() == 1L)
+				.filter(event -> event.getRfid() == 100L)
 				.anyMatch(event -> event.getTime().equals(LocalDateTime.of(2020,1,12,1,1,1,0))));
 	}
 
 	@Test
 	public void canCreateMultiple() {
-		EventRequest request1Body = new EventRequest(1L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
+		EventRequest request1Body = new EventRequest(100L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
 		ResponseEntity<String> response1Entity = this.restTemplate
 				.postForEntity("http://localhost:" + port + "/race/event", request1Body, String.class);
 		assertEquals(200, response1Entity.getStatusCodeValue());
-		EventRequest request2Body = new EventRequest(1L, 222L, LocalDateTime.of(2020,1,12,10,12,1,0));
+		EventRequest request2Body = new EventRequest(100L, 222L, LocalDateTime.of(2020,1,12,10,12,1,0));
 		ResponseEntity<String> response2Entity = this.restTemplate
 				.postForEntity("http://localhost:" + port + "/race/event", request2Body, String.class);
 		assertEquals(200, response2Entity.getStatusCodeValue());
@@ -69,23 +75,23 @@ class RaceServerApplicationTests {
 		assertEquals(events.size(), 2);
 		assertTrue(events.stream()
 				.filter(event -> event.getReaderId() == 111L)
-				.filter(event -> event.getRfid() == 1L)
+				.filter(event -> event.getRfid() == 100L)
 				.anyMatch(event -> event.getTime().equals(LocalDateTime.of(2020,1,12,1,1,1,0))));
 		assertTrue(events.stream()
 				.filter(event -> event.getReaderId() == 222L)
-				.filter(event -> event.getRfid() == 1L)
+				.filter(event -> event.getRfid() == 100L)
 				.anyMatch(event -> event.getTime().equals(LocalDateTime.of(2020,1,12,10,12,1,0))));
 
 	}
 
 	@Test
 	public void canUpdate() {
-		EventRequest requestBody = new EventRequest(1L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
+		EventRequest requestBody = new EventRequest(100L, 111L, LocalDateTime.of(2020,1,12,1,1,1,0));
 		ResponseEntity<String> responseEntity = this.restTemplate
 				.postForEntity("http://localhost:" + port + "/race/event", requestBody, String.class);
 		assertEquals(200, responseEntity.getStatusCodeValue());
 
-		EventRequest request2Body = new EventRequest(1L, 111L, LocalDateTime.of(2020,1,12,9,10,11,0));
+		EventRequest request2Body = new EventRequest(100L, 111L, LocalDateTime.of(2020,1,12,9,10,11,0));
 		ResponseEntity<String> response2Entity = this.restTemplate
 				.postForEntity("http://localhost:" + port + "/race/event", request2Body, String.class);
 		assertEquals(200, response2Entity.getStatusCodeValue());
@@ -95,7 +101,7 @@ class RaceServerApplicationTests {
 		assertEquals(events.size(), 1);
 		assertTrue(events.stream()
 				.filter(event -> event.getReaderId() == 111L)
-				.filter(event -> event.getRfid() == 1L)
+				.filter(event -> event.getRfid() == 100L)
 				.anyMatch(event -> event.getTime().equals(LocalDateTime.of(2020,1,12,9,10,11,0))));
 	}
 
@@ -113,6 +119,6 @@ class RaceServerApplicationTests {
 
 	@AfterEach
 	public void cleanup() {
-		this.jdbcTemplate.execute("DELETE FROM event");
+		this.jdbcTemplate.execute("DELETE FROM event; DELETE FROM participant");
 	}
 }
