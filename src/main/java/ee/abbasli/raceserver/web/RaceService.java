@@ -1,7 +1,5 @@
 package ee.abbasli.raceserver.web;
 
-import static java.time.LocalDateTime.now;
-
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,7 @@ public class RaceService {
   ParticipantDao participantDao;
 
   public void createOrUpdate(long rfid, long readerId, LocalDateTime time) {
-    validate(rfid, readerId, time);
+    validate(rfid);
     if (eventDao.exists(rfid, readerId)) {
       eventDao.update(rfid, readerId, time);
     }
@@ -26,8 +24,7 @@ public class RaceService {
     }
   }
 
-  public void validate(long rfid, long readerId, LocalDateTime time) {
-    participantDao.tryFind(rfid)
-        .orElseThrow(IllegalArgumentException::new);
+  public void validate(long rfid) {
+    participantDao.tryFind(rfid).orElseThrow(IllegalArgumentException::new);
   }
 }
